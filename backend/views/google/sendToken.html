@@ -1,16 +1,12 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Sending Token</title>
-  </head>
-  <body>
-    <script>
-      const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get("jwt");
-      const googleToken = urlParams.get("googleToken");
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get("jwt");
+  const googleToken = urlParams.get("googleToken");
+  const role = urlParams.get("role");
 
-      window.opener.postMessage({ token, googleToken }, "http://localhost:3000");
-      window.close();
-    </script>
-  </body>
-</html>
+  if (window.opener && token) {
+    window.opener.postMessage({ token, googleToken, role }, "http://localhost:3000");
+  }
+
+  window.close();
+</script>

@@ -8,6 +8,10 @@ import { syncDatabase } from './models/index.js';
 import userRoutes from './routes/userRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import adminRoutes from './routes/adminRoutes.js';
+import courseRoutes from './routes/courseRoutes.js';
+import lectureRoutes from './routes/lectureRoutes.js';
+
 
 dotenv.config();
 
@@ -36,6 +40,11 @@ app.use(passport.initialize());
 
 // Routes
 app.use('/api/users', userRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/course', courseRoutes);
+app.use('/api/lecture', lectureRoutes);
+app.use('/uploads', express.static('uploads')); // serve static files
+
 
 // Start server
 app.listen(process.env.PORT, () => {

@@ -1,63 +1,93 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { FaRobot } from 'react-icons/fa';
-import General from '../components/General';
-import Announcements from '../components/Announcements';
-import LectureSlides from '../components/LectureSlides';
-import Lectures from '../components/Lectures';
-import Attendance from '../components/Attendance';
+import axios from 'axios';
 
-const tabs = ['General', 'Announcements', 'Lecture Slides', 'Lectures', 'Attendance'];
-
-const dummyData = {
-  professor: 'Dr. Shalini Sharma',
-  general: 'This course covers advanced AI concepts including ML, NLP, and Deep Learning.',
-  announcements: ['Class postponed on July 1', 'Assignment 2 due next Monday'],
-  slides: ['Lecture 1 - Introduction.pdf', 'Lecture 2 - ML Basics.pdf'],
-  lectures: ['Week 1 - AI Foundations', 'Week 2 - ML Models'],
-  attendance: ['Week 1: Present', 'Week 2: Absent', 'Week 3: Present'],
-};
+const tabs = ['General', 'Announcements', 'Lecture Slides'];
 
 const CourseDetail = () => {
   const { courseId } = useParams();
   const [activeTab, setActiveTab] = useState('General');
+  const [courseInfo, setCourseInfo] = useState({});
+  const [materials, setMaterials] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
   const [doneSlides, setDoneSlides] = useState({});
-  const [doneLectures, setDoneLectures] = useState({});
 
-  const toggleDone = (type, id) => {
-    if (type === 'slide') {
-      setDoneSlides(prev => ({ ...prev, [id]: !prev[id] }));
-    } else {
-      setDoneLectures(prev => ({ ...prev, [id]: !prev[id] }));
-    }
+  const toggleDone = (id) => {
+    setDoneSlides(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [courseRes, materialRes] = await Promise.all([
+          axios.get(`http://localhost:5000/api/course/${courseId}`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          }),
+          axios.get(`http://localhost:5000/api/lecture/${courseId}`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          }),
+        ]);
+
+        setCourseInfo(courseRes.data.course || {});
+        setMaterials(materialRes.data.materials || []);
+        setAnnouncements(courseRes.data.announcements || []);
+      } catch (err) {
+        console.error("Error fetching course details:", err);
+      }
+    };
+
+    fetchData();
+  }, [courseId]);
+
   const renderTabContent = () => {
-    switch (activeTab) {
-      case 'General':
-        return <General description={dummyData.general} />;
-      case 'Announcements':
-        return <Announcements announcements={dummyData.announcements} />;
-      case 'Lecture Slides':
-        return (
-          <LectureSlides
-            slides={dummyData.slides}
-            doneSlides={doneSlides}
-            toggleDone={toggleDone}
-          />
-        );
-      case 'Lectures':
-        return (
-          <Lectures
-            lectures={dummyData.lectures}
-            doneLectures={doneLectures}
-            toggleDone={toggleDone}
-          />
-        );
-      case 'Attendance':
-        return <Attendance attendance={dummyData.attendance} />;
-      default:
-        return null;
+    if (activeTab === 'General') {
+      return (
+        <div>
+          <p className="text-gray-700 leading-relaxed">{courseInfo.description || 'No description provided.'}</p>
+        </div>
+      );
+    }
+
+    if (activeTab === 'Announcements') {
+      return (
+        <ul className="list-disc list-inside space-y-2">
+          {announcements.length > 0 ? announcements.map((a, i) => (
+            <li key={i}>{a}</li>
+          )) : <p>No announcements yet.</p>}
+        </ul>
+      );
+    }
+
+    if (activeTab === 'Lecture Slides') {
+      return (
+        <div className="space-y-4">
+          {materials.length > 0 ? materials.map((slide) => (
+            <div key={slide.material_id} className="flex items-center justify-between p-4 border rounded-xl bg-white shadow">
+              <div>
+                <h4 className="text-lg font-semibold">{slide.title}</h4>
+                <p className="text-sm text-gray-500">{slide.description}</p>
+              </div>
+              <div className="flex gap-3">
+                <a
+                  href={`http://localhost:5000${slide.file_url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline"
+                >
+                  View
+                </a>
+                <button
+                  className={`text-sm px-3 py-1 rounded-full ${doneSlides[slide.material_id] ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}
+                  onClick={() => toggleDone(slide.material_id)}
+                >
+                  {doneSlides[slide.material_id] ? '✅ Done' : 'Mark as Done'}
+                </button>
+              </div>
+            </div>
+          )) : <p>No materials uploaded yet.</p>}
+        </div>
+      );
     }
   };
 
@@ -67,9 +97,9 @@ const CourseDetail = () => {
       <div className="flex justify-between items-start mb-6">
         <div>
           <h2 className="text-3xl font-bold text-indigo-600 capitalize tracking-tight">
-            {courseId.replace(/-/g, ' ')}
+            {courseInfo.course_name || 'Loading...'}
           </h2>
-          <p className="text-md text-gray-500 mt-1">Instructor: <span className="font-medium">{dummyData.professor}</span></p>
+          <p className="text-md text-gray-500 mt-1">Department: <span className="font-medium">{courseInfo.department}</span></p>
         </div>
         <button className="bg-red-500 text-white px-4 py-2 rounded-xl shadow hover:bg-red-600 transition mt-2">
           🚀 Exam Mode
@@ -93,12 +123,11 @@ const CourseDetail = () => {
         ))}
       </div>
 
-      {/* Content Box */}
+      {/* Content */}
       <div className="bg-gray-50 p-6 rounded-xl shadow-inner border space-y-6">
         {renderTabContent()}
 
-        {/* Learn with AI Button */}
-        {['Lecture Slides', 'Lectures', 'General'].includes(activeTab) && (
+        {['Lecture Slides', 'General'].includes(activeTab) && (
           <div className="flex justify-center pt-4">
             <button className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl shadow hover:bg-indigo-700 text-lg">
               <FaRobot className="text-2xl" />

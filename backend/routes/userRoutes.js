@@ -27,12 +27,14 @@ router.get('/google', passport.authenticate('google', {
 router.get('/google/callback',
   passport.authenticate('google', { failureRedirect: '/login', session: false }),
   (req, res) => {
-    const { token } = req.user.user;
+    const token = req.user.token;
     const googleToken = req.user.accessToken;
+    const role = req.user.user.role;
 
-    res.redirect(`http://localhost:5000/sendToken.html?jwt=${token}&googleToken=${googleToken}`);
+    res.redirect(`http://localhost:5000/sendToken.html?jwt=${token}&googleToken=${googleToken}&role=${role}`);
   }
 );
+
 
 
 

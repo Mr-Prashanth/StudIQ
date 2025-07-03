@@ -42,10 +42,19 @@ const Login = () => {
       toast.success(data.message || "Login successful!");
       if (data.token) localStorage.setItem("token", data.token);
       console.log(data.token);
+localStorage.setItem("user_role", data.user.role);
+localStorage.setItem("user_id", data.user.user_id); // ✅ ADD THIS
 
       setUser(true);
       setShowLogin(false);
-      navigate("/main");
+      if (data.user?.role === "admin") {
+  navigate("/admin");
+} else if (data.user?.role=="teacher"){
+  navigate("/teacher");
+}else {
+  navigate("/main");
+}
+
     } catch (error) {
       setLoading(false);
       console.error("Auth error:", error);

@@ -11,6 +11,9 @@ import Chat from "./pages/Chat";
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
 import Dashboard from "./pages/Dashboard";
+import AdminPanel from "./pages/AdminPanel";
+import TeacherPanel from "./pages/TeacherPanel";
+import LectureSlides from "./pages/LectureSlides";
 
 function App() {
   const { showLogin } = useContext(AppContext);
@@ -22,9 +25,11 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/main" element={<Main />} />
+        <Route path="/admin" element={<AdminPanel />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/dashboard" element={<Dashboard />} />
-
+        <Route path="/teacher" element={<TeacherPanel />} />
+        <Route path="/teacher/:courseId" element={<LectureSlides />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/courses/:courseId" element={<CourseDetail />} />
       </Routes>
