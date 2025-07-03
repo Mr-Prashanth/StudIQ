@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+// pages/LectureSlides.jsx
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import axios from 'axios';
+import PostAnnouncement from '../components/PostAnnouncement';
 
 const LectureSlides = () => {
   const { courseId } = useParams();
@@ -52,9 +54,11 @@ const LectureSlides = () => {
 
   return (
     <div className="mt-36 mx-10 lg:mx-40 mb-16">
-      <h2 className="text-3xl font-bold mb-8 text-center text-blue-700">📚 Upload Lecture Material</h2>
+      <h2 className="text-3xl font-bold mb-8 text-center text-blue-700">📚 Course Dashboard</h2>
 
-      <form onSubmit={handleFileUpload} className="bg-white p-6 rounded-xl shadow-md space-y-4 border border-blue-200">
+      {/* Upload Lecture Material */}
+      <form onSubmit={handleFileUpload} className="bg-white p-6 rounded-xl shadow-md space-y-4 border border-blue-200 mb-10">
+        <h3 className="text-xl font-semibold mb-4">📤 Upload Lecture Material</h3>
         <input
           type="text"
           placeholder="Lecture Title"
@@ -87,7 +91,8 @@ const LectureSlides = () => {
         </button>
       </form>
 
-      <div className="mt-10">
+      {/* 📂 Uploaded Materials */}
+      <div className="mt-10 mb-16">
         <h3 className="text-xl font-semibold mb-4">📂 Uploaded Materials</h3>
         {materials.length === 0 ? (
           <p className="text-gray-500">No materials uploaded yet.</p>
@@ -103,13 +108,18 @@ const LectureSlides = () => {
                   rel="noopener noreferrer"
                   className="text-blue-500 hover:underline text-sm"
                 >
-                  📥 Download ({m.file_type.split('/')[1]})
+                  📥 Download ({m.file_type?.split('/')[1] || m.file_type})
                 </a>
               </li>
             ))}
           </ul>
         )}
       </div>
+
+      {/* 📣 Post Announcement */}
+      <div id="announcement">
+  <PostAnnouncement courseId={courseId} />
+</div>
     </div>
   );
 };

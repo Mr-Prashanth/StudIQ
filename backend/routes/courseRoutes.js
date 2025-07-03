@@ -5,7 +5,8 @@ import {
   getTeacherCourses,
   getCoursesWithStudentCount,
   getStudentCourses,
-  getCourseById
+  getCourseById,
+  getStudentsInCourse
 } from '../controllers/courseController.js';
 import { verifyToken } from '../middlewares/auth.js';
 
@@ -20,6 +21,8 @@ router.get('/', verifyToken, getTeacherCourses);
 router.get('/with-students', verifyToken, getCoursesWithStudentCount);
 router.get('/student-courses', verifyToken, getStudentCourses); // ✅ new route
 router.get('/:courseId', verifyToken, getCourseById);
+router.get('/:courseId/students', verifyToken, getStudentsInCourse);
+
 
 
 export default router;

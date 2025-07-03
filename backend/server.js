@@ -11,6 +11,10 @@ import { fileURLToPath } from 'url';
 import adminRoutes from './routes/adminRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
 import lectureRoutes from './routes/lectureRoutes.js';
+import attendanceRoutes from './routes/attendanceRoutes.js';
+import announcementRoutes from './routes/announcementRoutes.js';
+
+// Load
 
 
 dotenv.config();
@@ -44,6 +48,9 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/course', courseRoutes);
 app.use('/api/lecture', lectureRoutes);
 app.use('/uploads', express.static('uploads')); // serve static files
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/announcement', announcementRoutes);
+
 
 
 // Start server
