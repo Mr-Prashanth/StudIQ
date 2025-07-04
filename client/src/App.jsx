@@ -14,6 +14,7 @@ import Dashboard from "./pages/Dashboard";
 import AdminPanel from "./pages/AdminPanel";
 import TeacherPanel from "./pages/TeacherPanel";
 import LectureSlides from "./pages/LectureSlides";
+import MarkAttendancePage from "./pages/MarkAttendancePage";
 
 function App() {
   const { showLogin } = useContext(AppContext);
@@ -32,6 +33,7 @@ function App() {
         <Route path="/teacher/:courseId" element={<LectureSlides />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/courses/:courseId" element={<CourseDetail />} />
+        <Route path="/teacher/:courseId/mark-attendance" element={<MarkAttendancePage />} />
       </Routes>
     </div>
   );

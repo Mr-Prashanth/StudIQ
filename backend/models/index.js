@@ -1,7 +1,8 @@
 // models/index.js
 import sequelize from '../config/db.js';
 import { DataTypes } from 'sequelize';
-
+import AnnouncementModel from './Announcement.js';
+import AttendanceModel from './Attendance.js';
 import UserModel from './User.js';
 import StudentDetailModel from './StudentDetail.js';
 import TeacherDetailModel from './TeacherDetail.js';
@@ -15,6 +16,8 @@ const TeacherDetail = TeacherDetailModel(sequelize, DataTypes);
 const Course = CourseModel(sequelize, DataTypes);
 const Enrollment = EnrollmentModel(sequelize, DataTypes);
 const CourseMaterial = CourseMaterialModel(sequelize, DataTypes);
+const Announcement = AnnouncementModel(sequelize, DataTypes);
+const Attendance = AttendanceModel(sequelize, DataTypes);
 
 // 🔁 Associations
 User.hasOne(StudentDetail, { foreignKey: 'user_id', onDelete: 'CASCADE' });
@@ -35,6 +38,20 @@ User.hasMany(CourseMaterial, { foreignKey: 'uploaded_by', onDelete: 'SET NULL' }
 CourseMaterial.belongsTo(Course, { foreignKey: 'course_id' });
 CourseMaterial.belongsTo(User, { foreignKey: 'uploaded_by' });
 
+Course.hasMany(Announcement, { foreignKey: 'course_id', onDelete: 'CASCADE' });
+User.hasMany(Announcement, { foreignKey: 'posted_by', onDelete: 'SET NULL' });
+Announcement.belongsTo(Course, { foreignKey: 'course_id' });
+Announcement.belongsTo(User, { foreignKey: 'posted_by' });
+
+Course.hasMany(Attendance, { foreignKey: 'course_id', onDelete: 'CASCADE' });
+User.hasMany(Attendance, { foreignKey: 'student_id', onDelete: 'CASCADE' });
+Attendance.belongsTo(Course, { foreignKey: 'course_id' });
+Attendance.belongsTo(User, { foreignKey: 'student_id' });
+Announcement.belongsTo(User, {
+  foreignKey: 'posted_by',
+  as: 'poster'
+});
+
 const syncDatabase = async () => {
   try {
     await sequelize.authenticate();
@@ -54,5 +71,7 @@ export {
   Course,
   Enrollment,
   CourseMaterial,
+  Announcement,
+  Attendance,
   syncDatabase,
 };

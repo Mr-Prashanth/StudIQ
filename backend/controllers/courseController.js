@@ -1,7 +1,6 @@
 import { User, Course, Enrollment } from '../models/index.js';
 
-// Create a new course
-// Create a course using JWT-authenticated teacher
+// Create a new course using JWT-authenticated teacher
 export const createCourse = async (req, res) => {
   const { course_name, description, department, credits } = req.body;
   const teacher_id = req.user.id; // ✅ from token
@@ -12,8 +11,6 @@ export const createCourse = async (req, res) => {
 
   try {
     const course = await Course.create({ course_name, description, department, credits });
-   
-
 
     // Enroll the teacher as the creator
     await Enrollment.create({
@@ -89,6 +86,7 @@ export const enrollStudent = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
 // Get teacher courses with student count
 export const getCoursesWithStudentCount = async (req, res) => {
   const teacher_id = req.user.id;
@@ -118,6 +116,7 @@ export const getCoursesWithStudentCount = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
 // Get all courses a student is enrolled in
 export const getStudentCourses = async (req, res) => {
   const student_id = req.user.id;
@@ -140,6 +139,8 @@ export const getStudentCourses = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+// Get a course by ID
 export const getCourseById = async (req, res) => {
   const { courseId } = req.params;
 
@@ -148,11 +149,33 @@ export const getCourseById = async (req, res) => {
     if (!course) return res.status(404).json({ error: 'Course not found' });
 
     // For now, announcements are dummy
-    const announcements = ['Assignment due Friday', 'Quiz on Monday']; // Replace with real table if needed
+    const announcements = ['Assignment due Friday', 'Quiz on Monday'];
 
     res.status(200).json({ course, announcements });
   } catch (err) {
     console.error('getCourseById error:', err);
     res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// Get students enrolled in a specific course
+export const getStudentsInCourse = async (req, res) => {
+  const { courseId } = req.params;
+
+  try {
+    const enrollments = await Enrollment.findAll({
+      where: { course_id: courseId },
+      include: {
+        model: User,
+        attributes: ['user_id', 'name', 'email'],
+        where: { role: 'student' },
+      },
+    });
+
+    const students = enrollments.map((e) => e.User);
+    res.status(200).json({ students });
+  } catch (err) {
+    console.error('getStudentsInCourse error:', err);
+    res.status(500).json({ error: 'Server error while fetching students' });
   }
 };

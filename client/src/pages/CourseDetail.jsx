@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { FaRobot } from 'react-icons/fa';
 import axios from 'axios';
 
-const tabs = ['General', 'Announcements', 'Lecture Slides'];
+const tabs = ['Announcements', 'Attendance', 'Lecture Slides'];
 
 const CourseDetail = () => {
   const { courseId } = useParams();
@@ -12,6 +12,9 @@ const CourseDetail = () => {
   const [materials, setMaterials] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [doneSlides, setDoneSlides] = useState({});
+  const [attendance, setAttendance] = useState([]);
+  const [attendancePercentage, setAttendancePercentage] = useState(null);
+  const [loadingAttendance, setLoadingAttendance] = useState(false);
 
   const toggleDone = (id) => {
     setDoneSlides(prev => ({ ...prev, [id]: !prev[id] }));
@@ -20,6 +23,9 @@ const CourseDetail = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const announcementRes = await axios.get(`http://localhost:5000/api/announcement/${courseId}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
         const [courseRes, materialRes] = await Promise.all([
           axios.get(`http://localhost:5000/api/course/${courseId}`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -28,10 +34,10 @@ const CourseDetail = () => {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
           }),
         ]);
-
+        
         setCourseInfo(courseRes.data.course || {});
         setMaterials(materialRes.data.materials || []);
-        setAnnouncements(courseRes.data.announcements || []);
+        setAnnouncements(announcementRes.data.announcements || []);
       } catch (err) {
         console.error("Error fetching course details:", err);
       }
@@ -39,6 +45,37 @@ const CourseDetail = () => {
 
     fetchData();
   }, [courseId]);
+
+  useEffect(() => {
+    const fetchAttendance = async () => {
+      if (activeTab === 'Attendance') {
+        setLoadingAttendance(true);
+        try {
+          const response = await axios.get(`http://localhost:5000/api/attendance/${courseId}/student`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          });
+          setAttendance(response.data.attendance || []);
+          
+          // Calculate attendance percentage
+          if (response.data.attendance && response.data.attendance.length > 0) {
+            const presentCount = response.data.attendance.filter(
+              record => record.status === 'present'
+            ).length;
+            const percentage = Math.round((presentCount / response.data.attendance.length) * 100);
+            setAttendancePercentage(percentage);
+          } else {
+            setAttendancePercentage(0);
+          }
+        } catch (err) {
+          console.error("Error fetching attendance:", err);
+        } finally {
+          setLoadingAttendance(false);
+        }
+      }
+    };
+
+    fetchAttendance();
+  }, [activeTab, courseId]);
 
   const renderTabContent = () => {
     if (activeTab === 'General') {
@@ -51,11 +88,92 @@ const CourseDetail = () => {
 
     if (activeTab === 'Announcements') {
       return (
-        <ul className="list-disc list-inside space-y-2">
+        <ul className="space-y-4">
           {announcements.length > 0 ? announcements.map((a, i) => (
-            <li key={i}>{a}</li>
+            <li key={i} className="p-4 border rounded-xl bg-white shadow">
+              <h4 className="text-lg font-bold text-indigo-700">{a.title}</h4>
+              <p className="text-gray-700 mt-1">{a.message}</p>
+              <p className="text-sm text-gray-500 mt-2">
+                Posted by {a.poster?.name || 'Unknown'} on {new Date(a.posted_at).toLocaleString()}
+              </p>
+            </li>
           )) : <p>No announcements yet.</p>}
         </ul>
+      );
+    }
+
+    if (activeTab === 'Attendance') {
+      return (
+        <div className="space-y-6">
+          {loadingAttendance ? (
+            <p>Loading attendance data...</p>
+          ) : (
+            <>
+              <div className="bg-white p-4 rounded-xl shadow border">
+                <h3 className="text-lg font-semibold mb-2">Attendance Summary</h3>
+                <div className="flex items-center">
+                  <div className="w-24 h-24 rounded-full border-8 border-gray-200 flex items-center justify-center mr-4" 
+                    style={{ 
+                      background: `conic-gradient(#4f46e5 ${attendancePercentage * 3.6}deg, #e5e7eb 0deg)` 
+                    }}>
+                    <span className="text-xl font-bold">{attendancePercentage}%</span>
+                  </div>
+                  <div>
+                    <p className="text-gray-700">
+                      <span className="font-semibold">Total Classes:</span> {attendance.length}
+                    </p>
+                    <p className="text-gray-700">
+                      <span className="font-semibold">Present:</span> {attendance.filter(a => a.status === 'present').length}
+                    </p>
+                    <p className="text-gray-700">
+                      <span className="font-semibold">Absent:</span> {attendance.filter(a => a.status === 'absent').length}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-4 rounded-xl shadow border">
+                <h3 className="text-lg font-semibold mb-4">Attendance Details</h3>
+                {attendance.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marked At</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {attendance.map((record, index) => (
+                          <tr key={index}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {new Date(record.date).toLocaleDateString()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                record.status === 'present' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-red-100 text-red-800'
+                              }`}>
+                                {record.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {new Date(record.marked_at).toLocaleString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p>No attendance records found.</p>
+                )}
+              </div>
+            </>
+          )}
+        </div>
       );
     }
 
