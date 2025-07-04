@@ -13,10 +13,10 @@ redis_url = os.getenv("REDIS_URL")
 # LLM
 llm = ChatGroq(api_key=groq_api_key, model_name="llama3-8b-8192")
 
-system_message = """You are a helpful AI assistant for college students. 
-You receive context from the LMS or course materials and your job is to answer academic doubts based strictly on that context. 
+system_message = """You are a helpful interactive AI assistant for college students. 
+if you receive context from the course materials and your job is to answer academic doubts based strictly on that context. 
 Use clear and simple language suitable for students. If the answer isn't in the provided context, 
-politely say you don’t have enough information to answer."""
+politely say you don’t have enough information to answer. provide the result in a well structured markdowns."""
 
 # Prompt Template
 prompt = ChatPromptTemplate.from_messages(

@@ -2,19 +2,68 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { IoCopyOutline, IoShareSocialOutline } from 'react-icons/io5';
+import { useParams } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
+
 
 const Chat = () => {
-  const [messages, setMessages] = useState([
-    { sender: 'bot', text: 'Hi Gokul! How can I help you today?' },
-  ]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [chatEnded, setChatEnded] = useState(false);
   const [review, setReview] = useState('');
+  const [courseName, setCourseName] = useState('');
   const chatEndRef = useRef(null);
+  const { courseId } = useParams();
 
+  // Scroll chat to bottom on message update
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Fetch course info on load
+  useEffect(() => {
+  const fetchUserAndCourse = async () => {
+    try {
+      const token = localStorage.getItem('token');
+
+      // Fetch user profile
+      const userRes = await fetch('http://localhost:5000/api/users/profile', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const userData = await userRes.json();
+      const userName = userRes.ok ? userData.user.name : 'there';
+
+      // Fetch course info
+      const courseRes = await axios.get(`http://localhost:5000/api/course/${courseId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const course = courseRes.data.course;
+      setCourseName(course.course_name);
+
+      // Set dynamic welcome message
+      setMessages([
+        {
+          sender: 'bot',
+          text: `Hi ${userName}! What do you want to learn from the course "${course.course_name}"?`,
+        },
+      ]);
+    } catch (error) {
+      console.error('Error fetching user or course:', error);
+      setMessages([
+        { sender: 'bot', text: 'Hi! How can I help you today?' },
+      ]);
+    }
+  };
+
+  fetchUserAndCourse();
+}, [courseId]);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,6 +78,7 @@ const Chat = () => {
     try {
       const res = await axios.post('http://localhost:8000/api/chat', {
         message: userMessage,
+        course_id: courseId,
       });
 
       setMessages((prev) => [
@@ -82,7 +132,10 @@ const Chat = () => {
                 ? 'bg-yellow-400 text-black rounded-br-none'
                 : 'bg-white text-gray-800 rounded-bl-none'
             }`}>
-              <p>{msg.text}</p>
+<div className="prose prose-sm md:prose-base">
+  <ReactMarkdown>{msg.text}</ReactMarkdown>
+</div>
+
 
               {msg.sender === 'bot' && (
                 <div className="flex justify-end gap-2 mt-2 text-gray-500 text-xs">
@@ -122,7 +175,6 @@ const Chat = () => {
           </button>
         </div>
       ) : (
-        // Input form
         <form onSubmit={handleSubmit} className="sticky bottom-6 z-10 mt-4 bg-white py-2">
           <div className="flex gap-2 items-center border border-gray-300 rounded-full px-4 py-2 shadow-md">
             <input

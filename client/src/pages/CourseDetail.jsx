@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { FaRobot } from 'react-icons/fa';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const tabs = ['Announcements', 'Attendance', 'Lecture Slides'];
 
@@ -15,6 +16,7 @@ const CourseDetail = () => {
   const [attendance, setAttendance] = useState([]);
   const [attendancePercentage, setAttendancePercentage] = useState(null);
   const [loadingAttendance, setLoadingAttendance] = useState(false);
+const navigate = useNavigate();
 
   const toggleDone = (id) => {
     setDoneSlides(prev => ({ ...prev, [id]: !prev[id] }));
@@ -247,10 +249,13 @@ const CourseDetail = () => {
 
         {['Lecture Slides', 'General'].includes(activeTab) && (
           <div className="flex justify-center pt-4">
-            <button className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl shadow hover:bg-indigo-700 text-lg">
-              <FaRobot className="text-2xl" />
-              Learn with AI
-            </button>
+<button
+  className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl shadow hover:bg-indigo-700 text-lg"
+  onClick={() => navigate(`/chat/${courseId}`)}
+>
+  <FaRobot className="text-2xl" />
+  Learn with AI
+</button>
           </div>
         )}
       </div>

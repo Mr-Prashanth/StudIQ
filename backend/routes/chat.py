@@ -24,7 +24,6 @@ class uploadedFile(BaseModel):
 @router.post("/upload", response_model=str)
 async def create_vectorstore(request: uploadedFile):
     try:
-        print(1)
         return RAGService.ingest_pdf_to_faiss(request.path, request.course_id)
 
     except Exception as e:
@@ -39,7 +38,7 @@ async def chat_with_bot(request: ChatRequest):
         merged_message = f"<context>{context}</context> \n <query>{query}</query>"
         result = chat_runnable.invoke(
             {"messages": merged_message}, config={"configurable": {"session_id": "1"}}
-        )
+        ) 
         return ChatResponse(response=result.content)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
