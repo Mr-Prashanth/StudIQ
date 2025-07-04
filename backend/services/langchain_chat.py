@@ -13,10 +13,15 @@ redis_url = os.getenv("REDIS_URL")
 # LLM
 llm = ChatGroq(api_key=groq_api_key, model_name="llama3-8b-8192")
 
+system_message = """You are a helpful AI assistant for college students. 
+You receive context from the LMS or course materials and your job is to answer academic doubts based strictly on that context. 
+Use clear and simple language suitable for students. If the answer isn't in the provided context, 
+politely say you don’t have enough information to answer."""
+
 # Prompt Template
 prompt = ChatPromptTemplate.from_messages(
     [
-        ("system", "You are Martha, a helpful AI assistant for college students."),
+        ("system", system_message),
         MessagesPlaceholder(variable_name="history"),
         ("human", "{messages}"),
     ]
@@ -24,6 +29,13 @@ prompt = ChatPromptTemplate.from_messages(
 
 # Combine prompt & LLM
 chain = prompt | llm
+
+
+def delete_chat_session(session_id: str):
+    """Delete a specific chat session from Redis."""
+    history = RedisChatMessageHistory(session_id=session_id, url=redis_url)
+    history.clear()
+    print(f"Chat session '{session_id}' deleted.")
 
 
 # Redis history function
@@ -37,4 +49,5 @@ chat_runnable = RunnableWithMessageHistory(
     get_message_history,
     input_messages_key="messages",
     history_messages_key="history",
+    session_id_key="session_id",
 )
