@@ -5,7 +5,6 @@ import { IoCopyOutline, IoShareSocialOutline } from 'react-icons/io5';
 import { useParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 
-
 const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -20,50 +19,58 @@ const Chat = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Fetch course info on load
+  // Initial message based on courseId or not
   useEffect(() => {
-  const fetchUserAndCourse = async () => {
-    try {
-      const token = localStorage.getItem('token');
+    const fetchUserAndCourse = async () => {
+      try {
+        const token = localStorage.getItem('token');
 
-      // Fetch user profile
-      const userRes = await fetch('http://localhost:5000/api/users/profile', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+        // Fetch user profile
+        const userRes = await fetch('http://localhost:5000/api/users/profile', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      const userData = await userRes.json();
-      const userName = userRes.ok ? userData.user.name : 'there';
+        const userData = await userRes.json();
+        const userName = userRes.ok ? userData.user.name : 'there';
 
-      // Fetch course info
-      const courseRes = await axios.get(`http://localhost:5000/api/course/${courseId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+        if (courseId) {
+          // Fetch course info
+          const courseRes = await axios.get(`http://localhost:5000/api/course/${courseId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
 
-      const course = courseRes.data.course;
-      setCourseName(course.course_name);
+          const course = courseRes.data.course;
+          setCourseName(course.course_name);
 
-      // Set dynamic welcome message
-      setMessages([
-        {
-          sender: 'bot',
-          text: `Hi ${userName}! What do you want to learn from the course "${course.course_name}"?`,
-        },
-      ]);
-    } catch (error) {
-      console.error('Error fetching user or course:', error);
-      setMessages([
-        { sender: 'bot', text: 'Hi! How can I help you today?' },
-      ]);
-    }
-  };
+          setMessages([
+            {
+              sender: 'bot',
+              text: `Hi ${userName}! What do you want to learn from the course "${course.course_name}"?`,
+            },
+          ]);
+        } else {
+          // General welcome message
+          setMessages([
+            {
+              sender: 'bot',
+              text: `Hi ${userName}! How can I help you today?`,
+            },
+          ]);
+        }
+      } catch (error) {
+        console.error('Error fetching user or course:', error);
+        setMessages([
+          { sender: 'bot', text: 'Hi! How can I help you today?' },
+        ]);
+      }
+    };
 
-  fetchUserAndCourse();
-}, [courseId]);
-
+    fetchUserAndCourse();
+  }, [courseId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -76,10 +83,20 @@ const Chat = () => {
     setInput('');
 
     try {
-      const res = await axios.post('http://localhost:8000/api/chat', {
-        message: userMessage,
-        course_id: courseId,
-      });
+      let res;
+
+      if (courseId) {
+        // Course-specific chat
+        res = await axios.post('http://localhost:8000/api/chat', {
+          message: userMessage,
+          course_id: courseId,
+        });
+      } else {
+        // General AI chat
+        res = await axios.post('http://localhost:8000/api/chat-ai', {
+          message: userMessage,
+        });
+      }
 
       setMessages((prev) => [
         ...prev,
@@ -132,10 +149,9 @@ const Chat = () => {
                 ? 'bg-yellow-400 text-black rounded-br-none'
                 : 'bg-white text-gray-800 rounded-bl-none'
             }`}>
-<div className="prose prose-sm md:prose-base">
-  <ReactMarkdown>{msg.text}</ReactMarkdown>
-</div>
-
+              <div>
+                <ReactMarkdown>{msg.text}</ReactMarkdown>
+              </div>
 
               {msg.sender === 'bot' && (
                 <div className="flex justify-end gap-2 mt-2 text-gray-500 text-xs">
