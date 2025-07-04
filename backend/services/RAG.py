@@ -47,12 +47,16 @@ class RAGService:
     @staticmethod
     def get_context(query: str, course_id: str, k: int = 5):
         # Load vectorstore
-        db = FAISS.load_local(
-            f"{RAGService.VECTORSTORE_DIR}/{course_id}",
-            embedding_model,
-            allow_dangerous_deserialization=True,
-        )
-
+        try:
+            db = FAISS.load_local(
+                f"{RAGService.VECTORSTORE_DIR}/{course_id}",
+                embedding_model,
+                allow_dangerous_deserialization=True,
+            )
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                f"Vectorstore for course_id '{course_id}' not found. Please ingest the PDF first."
+            )
         # Create a retriever
         retriever = db.as_retriever(search_kwargs={"k": k})
 

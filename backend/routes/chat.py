@@ -35,9 +35,7 @@ async def create_vectorstore(request: uploadedFile):
 async def chat_with_bot(request: ChatRequest):
     try:
         query = request.message
-        print(1)
         context = RAGService.get_context(query, request.course_id)
-        print(request.course_id, context, query)
         merged_message = f"<context>{context}</context> \n <query>{query}</query>"
         result = chat_runnable.invoke(
             {"messages": merged_message}, config={"configurable": {"session_id": "1"}}
