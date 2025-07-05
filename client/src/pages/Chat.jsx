@@ -11,61 +11,61 @@ const Chat = () => {
   const [chatEnded, setChatEnded] = useState(false);
   const [review, setReview] = useState('');
   const [courseName, setCourseName] = useState('');
+  const [studentId, setStudentId] = useState(null); // 🆕
   const chatEndRef = useRef(null);
   const { courseId } = useParams();
 
-  // Scroll chat to bottom on message update
+  // Scroll chat to bottom on new message
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Initial message based on courseId or not
+  // Initial greeting + fetch user and course
   useEffect(() => {
     const fetchUserAndCourse = async () => {
       try {
         const token = localStorage.getItem('token');
 
-        // Fetch user profile
         const userRes = await fetch('http://localhost:5000/api/users/profile', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         const userData = await userRes.json();
-        const userName = userRes.ok ? userData.user.name : 'there';
+        if (userRes.ok) {
+          const userName = userData.user.name;
+          console.log('User Data:', userData);
+          setStudentId(userData.user.user_id); // ✅ Set studentId
 
-        if (courseId) {
-          // Fetch course info
-          const courseRes = await axios.get(`http://localhost:5000/api/course/${courseId}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
+          if (courseId) {
+            const courseRes = await axios.get(`http://localhost:5000/api/course/${courseId}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
 
-          const course = courseRes.data.course;
-          setCourseName(course.course_name);
+            const course = courseRes.data.course;
+            setCourseName(course.course_name);
 
-          setMessages([
-            {
-              sender: 'bot',
-              text: `Hi ${userName}! What do you want to learn from the course "${course.course_name}"?`,
-            },
-          ]);
+            setMessages([
+              {
+                sender: 'bot',
+                text: `Hi ${userName}! What do you want to learn from the course "${course.course_name}"?`,
+              },
+            ]);
+          } else {
+            setMessages([
+              {
+                sender: 'bot',
+                text: `Hi ${userName}! How can I help you today?`,
+              },
+            ]);
+          }
         } else {
-          // General welcome message
           setMessages([
-            {
-              sender: 'bot',
-              text: `Hi ${userName}! How can I help you today?`,
-            },
+            { sender: 'bot', text: 'Hi! How can I help you today?' },
           ]);
         }
       } catch (error) {
         console.error('Error fetching user or course:', error);
-        setMessages([
-          { sender: 'bot', text: 'Hi! How can I help you today?' },
-        ]);
+        setMessages([{ sender: 'bot', text: 'Hi! How can I help you today?' }]);
       }
     };
 
@@ -84,19 +84,17 @@ const Chat = () => {
 
     try {
       let res;
+      const payload = { message: userMessage };
 
-      if (courseId) {
-        // Course-specific chat
-        res = await axios.post('http://localhost:8000/api/chat', {
-          message: userMessage,
-          course_id: courseId,
-        });
-      } else {
-        // General AI chat
-        res = await axios.post('http://localhost:8000/api/chat-ai', {
-          message: userMessage,
-        });
-      }
+      if (courseId) payload.course_id = courseId;
+      if (studentId) payload.student_id = studentId; // ✅ Optional
+
+      const endpoint = courseId
+        ? 'http://localhost:8000/api/chat'
+        : 'http://localhost:8000/api/chat-ai';
+
+      res = await axios.post(endpoint, payload);
+      console.log(studentId);
 
       setMessages((prev) => [
         ...prev,
@@ -104,7 +102,7 @@ const Chat = () => {
       ]);
     } catch (err) {
       console.error(err);
-      toast.error('Oops! Something went wrong. Please try again.');
+      toast.error('Oops! Something went wrong.');
       setMessages((prev) => [
         ...prev,
         { sender: 'bot', text: 'Oops! Something went wrong.' },
@@ -120,12 +118,9 @@ const Chat = () => {
   const handleShare = async (text) => {
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: 'Chat Reply from StudIQ AI',
-          text,
-        });
+        await navigator.share({ title: 'Chat Reply from StudIQ AI', text });
         toast.success('Shared successfully!');
-      } catch (err) {
+      } catch {
         toast.error('Failed to share.');
       }
     } else {
@@ -140,7 +135,7 @@ const Chat = () => {
 
   return (
     <div className="bg-white min-h-screen pt-[120px] px-6 text-black ml-40 mr-40 flex flex-col">
-      {/* Chat window */}
+      {/* Chat Window */}
       <div className="flex-1 overflow-y-auto border rounded-xl bg-gray-50 shadow-inner p-6 space-y-4">
         {messages.map((msg, idx) => (
           <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -149,9 +144,7 @@ const Chat = () => {
                 ? 'bg-yellow-400 text-black rounded-br-none'
                 : 'bg-white text-gray-800 rounded-bl-none'
             }`}>
-              <div>
-                <ReactMarkdown>{msg.text}</ReactMarkdown>
-              </div>
+              <div><ReactMarkdown>{msg.text}</ReactMarkdown></div>
 
               {msg.sender === 'bot' && (
                 <div className="flex justify-end gap-2 mt-2 text-gray-500 text-xs">
@@ -169,7 +162,7 @@ const Chat = () => {
         <div ref={chatEndRef} />
       </div>
 
-      {/* End chat and review */}
+      {/* End Chat + Review */}
       {chatEnded ? (
         <div className="mt-6 p-4 border rounded-xl bg-gray-100 shadow-md">
           <h3 className="font-semibold mb-2 text-gray-700">We’d love your feedback! 🌟</h3>

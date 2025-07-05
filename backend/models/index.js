@@ -9,7 +9,9 @@ import TeacherDetailModel from './TeacherDetail.js';
 import CourseModel from './Course.js';
 import EnrollmentModel from './Enrollment.js';
 import CourseMaterialModel from './CourseMaterial.js';
+import CalendarModel from './Calendar.js'; // ✅ Import Calendar
 
+// Initialize models
 const User = UserModel(sequelize, DataTypes);
 const StudentDetail = StudentDetailModel(sequelize, DataTypes);
 const TeacherDetail = TeacherDetailModel(sequelize, DataTypes);
@@ -18,8 +20,9 @@ const Enrollment = EnrollmentModel(sequelize, DataTypes);
 const CourseMaterial = CourseMaterialModel(sequelize, DataTypes);
 const Announcement = AnnouncementModel(sequelize, DataTypes);
 const Attendance = AttendanceModel(sequelize, DataTypes);
+const Calendar = CalendarModel(sequelize, DataTypes); // ✅ Instantiate Calendar
 
-// 🔁 Associations
+// ✅ Model Associations
 User.hasOne(StudentDetail, { foreignKey: 'user_id', onDelete: 'CASCADE' });
 User.hasOne(TeacherDetail, { foreignKey: 'user_id', onDelete: 'CASCADE' });
 
@@ -47,11 +50,15 @@ Course.hasMany(Attendance, { foreignKey: 'course_id', onDelete: 'CASCADE' });
 User.hasMany(Attendance, { foreignKey: 'student_id', onDelete: 'CASCADE' });
 Attendance.belongsTo(Course, { foreignKey: 'course_id' });
 Attendance.belongsTo(User, { foreignKey: 'student_id' });
+
 Announcement.belongsTo(User, {
   foreignKey: 'posted_by',
   as: 'poster'
 });
 
+Calendar.associate?.({ User }); // ✅ Associate calendar with user
+
+// ✅ Sync DB
 const syncDatabase = async () => {
   try {
     await sequelize.authenticate();
@@ -63,6 +70,7 @@ const syncDatabase = async () => {
   }
 };
 
+// ✅ Export all models
 export {
   sequelize,
   User,
@@ -73,5 +81,6 @@ export {
   CourseMaterial,
   Announcement,
   Attendance,
+  Calendar, // ✅ Fixed typo
   syncDatabase,
 };

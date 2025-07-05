@@ -13,6 +13,8 @@ import courseRoutes from './routes/courseRoutes.js';
 import lectureRoutes from './routes/lectureRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
 import announcementRoutes from './routes/announcementRoutes.js';
+import calendarRoutes from "./routes/calendarRoutes.js"; // ✅ Correct
+
 
 // Load
 
@@ -50,6 +52,7 @@ app.use('/api/lecture', lectureRoutes);
 app.use('/uploads', express.static('uploads')); // serve static files
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/announcement', announcementRoutes);
+app.use("/api/calendar", calendarRoutes); // ✅ Correct middleware usage
 
 
 
