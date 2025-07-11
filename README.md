@@ -84,21 +84,14 @@ npm start
 - Students can chat with the AI assistant, which uses RAG to answer based on course context.
 - Admins manage users, courses, and announcements.
 
-## Contribution Guidelines
-1. Fork the repo and create a feature branch.
-2. Follow the existing code style (see Prettier/Tailwind configs).
-3. For backend AI, prefer modular LangChain components.
-4. Add clear commit messages and documentation.
-5. Submit a pull request for review.
-
 ## Contributors
 
-- **Gokul Nishandh S T(https://github.com/Gokul-Nishandh)**  
+- **[Gokul Nishandh S T](https://github.com/Gokul-Nishandh)**  
   - Developed the entire frontend (React, Tailwind CSS, UI/UX)
   - Built the LMS backend (Node.js, Express, Sequelize, PostgreSQL)
   - Implemented user authentication, course management, and file uploads
 
-- **[Your Name]**  
+- **[Prashanth Samkumar](https://github.com/Mr-Prashanth)**  
   - Integrated AI features (RAG pipeline, LangChain, Groq Llama3)
   - Used Hugging Face pretrained model (all-MiniLM-L6-v2) for embeddings
   - Developed the FastAPI backend for chat and context retrieval
