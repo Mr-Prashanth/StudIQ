@@ -91,15 +91,19 @@ npm start
 4. Add clear commit messages and documentation.
 5. Submit a pull request for review.
 
-## License
-MIT
+## Contributors
 
-## Acknowledgements
-- [LangChain](https://github.com/langchain-ai/langchain)
-- [FAISS](https://github.com/facebookresearch/faiss)
-- [Groq Llama3](https://groq.com/)
-- [React](https://react.dev/)
-- [Tailwind CSS](https://tailwindcss.com/)
+- **Gokul Nishand**  
+  - Developed the entire frontend (React, Tailwind CSS, UI/UX)
+  - Built the LMS backend (Node.js, Express, Sequelize, PostgreSQL)
+  - Implemented user authentication, course management, and file uploads
+
+- **[Your Name]**  
+  - Integrated AI features (RAG pipeline, LangChain, Groq Llama3)
+  - Used Hugging Face pretrained model (all-MiniLM-L6-v2) for embeddings
+  - Developed the FastAPI backend for chat and context retrieval
+  - Set up Redis for chat history and session management
+  - Implemented PDF vectorization and context-aware chat
 
 ## How to Start All Servers
 
