@@ -93,7 +93,7 @@ npm start
 
 ## Contributors
 
-- **Gokul Nishand**  
+- **Gokul Nishandh S T(https://github.com/Gokul-Nishandh)**  
   - Developed the entire frontend (React, Tailwind CSS, UI/UX)
   - Built the LMS backend (Node.js, Express, Sequelize, PostgreSQL)
   - Implemented user authentication, course management, and file uploads
